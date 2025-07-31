@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedEska – Medizinische Lernplattform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle, #d1fae5, #bfdbfe);
+      overflow: hidden;
+    }
+    .cell {
+      position: absolute;
+      border-radius: 9999px;
+      opacity: 0.3;
+      animation: float 20s ease-in-out infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-50px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="text-gray-800">
+  <!-- Zellenhintergrund -->
+  <div class="cell bg-green-200 w-40 h-40 top-10 left-10"></div>
+  <div class="cell bg-blue-200 w-32 h-32 top-1/3 left-2/3"></div>
+  <div class="cell bg-green-300 w-24 h-24 bottom-20 right-20"></div>
+
+  <!-- Login -->
+  <div id="login" class="relative z-10 min-h-screen flex items-center justify-center">
+    <div class="backdrop-blur-md bg-white/40 border border-white/30 rounded-xl shadow-xl p-8 w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-6">🔐 Admin Login</h1>
+      <input id="password" type="password" placeholder="Passwort eingeben" class="w-full px-4 py-2 mb-4 rounded-lg border border-gray-300">
+      <button onclick="login()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Anmelden</button>
+      <p id="error" class="text-red-600 text-sm mt-2 hidden">Falsches Passwort</p>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="adminPanel" class="hidden relative z-10 min-h-screen p-6">
+    <div class="backdrop-blur-md bg-white/50 border border-white/30 rounded-xl p-6">
+      <h2 class="text-2xl font-bold mb-4">👨‍⚕️ MedEska Admin Panel</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <button onclick="showView('universitaetenView')" class="bg-green-100 p-4 rounded-xl font-medium">🏛️ Universitäten</button>
+        <button onclick="showView('kategorienView')" class="bg-green-100 p-4 rounded-xl font-medium">📚 Kategorien</button>
+        <button onclick="showView('kapitelView')" class="bg-green-100 p-4 rounded-xl font-medium">📖 Kapitel</button>
+        <button onclick="showView('lektionenView')" class="bg-green-100 p-4 rounded-xl font-medium">📝 Lektionen</button>
+        <button onclick="showView('fragenView')" class="bg-green-100 p-4 rounded-xl font-medium">❓ Fragen</button>
+        <button onclick="showView('importExportView')" class="bg-green-100 p-4 rounded-xl font-medium">💾 Import/Export</button>
+      </div>
+      <button onclick="logout()" class="text-sm text-blue-600 hover:underline">Abmelden</button>
+    </div>
+  </div>
+
+  <!-- Views für alle Module (Platzhalter für Demo) -->
+  <div id="universitaetenView" class="hidden p-6 viewModule">[Universitäten Modul]</div>
+  <div id="kategorienView" class="hidden p-6 viewModule">[Kategorien Modul]</div>
+  <div id="kapitelView" class="hidden p-6 viewModule">[Kapitel Modul]</div>
+  <div id="lektionenView" class="hidden p-6 viewModule">
+    <div class="backdrop-blur-md bg-white/60 rounded-xl p-6">
+      <button onclick="showView('adminPanel')" class="text-blue-600 hover:underline mb-4">← Zurück</button>
+      <h3 class="text-xl font-bold mb-4">📝 Lektionen-Verwaltung</h3>
+      <input id="neueLektion" type="text" placeholder="Neue Lektion" class="w-full px-4 py-2 border rounded mb-2">
+      <button onclick="lektionHinzufuegen()" class="bg-green-500 text-white px-4 py-2 rounded">Hinzufügen</button>
+      <ul id="lektionenListe" class="mt-4 space-y-2"></ul>
+    </div>
+  </div>
+
+  <div id="fragenView" class="hidden p-6 viewModule">
+    <div class="backdrop-blur-md bg-white/60 rounded-xl p-6">
+      <button onclick="showView('adminPanel')" class="text-blue-600 hover:underline mb-4">← Zurück</button>
+      <h3 class="text-xl font-bold mb-4">❓ Fragen-Verwaltung</h3>
+      <textarea id="neueFrage" placeholder="Neue Frage eingeben" class="w-full px-4 py-2 border rounded mb-2"></textarea>
+      <button onclick="frageHinzufuegen()" class="bg-green-500 text-white px-4 py-2 rounded">Hinzufügen</button>
+      <ul id="fragenListe" class="mt-4 space-y-2"></ul>
+    </div>
+  </div>
+
+  <div id="importExportView" class="hidden p-6 viewModule">
+    <div class="backdrop-blur-md bg-white/60 rounded-xl p-6">
+      <button onclick="showView('adminPanel')" class="text-blue-600 hover:underline mb-4">← Zurück</button>
+      <h3 class="text-xl font-bold mb-4">💾 Import / Export</h3>
+      <button onclick="datenExportieren()" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Exportieren</button>
+      <input type="file" onchange="datenImportieren(event)" class="mt-4">
+    </div>
+  </div>
+
+  <script>
+    function login() {
+      if (document.getElementById('password').value === 'admin123') {
+        localStorage.setItem('medeska_admin', 'true');
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+      } else {
+        document.getElementById('error').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('medeska_admin');
+      location.reload();
+    }
+
+    function showView(id) {
+      document.querySelectorAll('.viewModule, #adminPanel').forEach(el => el.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function lektionHinzufuegen() {
+      const input = document.getElementById('neueLektion');
+      const lektionen = JSON.parse(localStorage.getItem('lektionen') || '[]');
+      lektionen.push(input.value);
+      localStorage.setItem('lektionen', JSON.stringify(lektionen));
+      input.value = '';
+      lektionenAnzeigen();
+    }
+
+    function lektionenAnzeigen() {
+      const liste = document.getElementById('lektionenListe');
+      const lektionen = JSON.parse(localStorage.getItem('lektionen') || '[]');
+      liste.innerHTML = '';
+      lektionen.forEach((l, i) => {
+        liste.innerHTML += `<li class='bg-green-100 p-2 rounded flex justify-between'>${l} <button onclick="lektionLoeschen(${i})" class='text-red-600'>Löschen</button></li>`;
+      });
+    }
+
+    function lektionLoeschen(i) {
+      const lektionen = JSON.parse(localStorage.getItem('lektionen') || '[]');
+      lektionen.splice(i, 1);
+      localStorage.setItem('lektionen', JSON.stringify(lektionen));
+      lektionenAnzeigen();
+    }
+
+    function frageHinzufuegen() {
+      const input = document.getElementById('neueFrage');
+      const fragen = JSON.parse(localStorage.getItem('fragen') || '[]');
+      fragen.push(input.value);
+      localStorage.setItem('fragen', JSON.stringify(fragen));
+      input.value = '';
+      fragenAnzeigen();
+    }
+
+    function fragenAnzeigen() {
+      const liste = document.getElementById('fragenListe');
+      const fragen = JSON.parse(localStorage.getItem('fragen') || '[]');
+      liste.innerHTML = '';
+      fragen.forEach((f, i) => {
+        liste.innerHTML += `<li class='bg-green-100 p-2 rounded flex justify-between'>${f} <button onclick="frageLoeschen(${i})" class='text-red-600'>Löschen</button></li>`;
+      });
+    }
+
+    function frageLoeschen(i) {
+      const fragen = JSON.parse(localStorage.getItem('fragen') || '[]');
+      fragen.splice(i, 1);
+      localStorage.setItem('fragen', JSON.stringify(fragen));
+      fragenAnzeigen();
+    }
+
+    function datenExportieren() {
+      const daten = {
+        fragen: localStorage.getItem('fragen'),
+        lektionen: localStorage.getItem('lektionen')
+      };
+      const blob = new Blob([JSON.stringify(daten)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'medeska_daten.json';
+      a.click();
+    }
+
+    function datenImportieren(e) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const daten = JSON.parse(evt.target.result);
+        if (daten.fragen) localStorage.setItem('fragen', daten.fragen);
+        if (daten.lektionen) localStorage.setItem('lektionen', daten.lektionen);
+        fragenAnzeigen();
+        lektionenAnzeigen();
+      }
+      reader.readAsText(e.target.files[0]);
+    }
+
+    window.onload = () => {
+      if (localStorage.getItem('medeska_admin') === 'true') {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+      }
+      lektionenAnzeigen();
+      fragenAnzeigen();
+    }
+  </script>
+</body>
+</html>
